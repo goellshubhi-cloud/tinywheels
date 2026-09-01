@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>tinywheels — Understand, Book & Experience Stroller Rentals</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config={theme:{extend:{fontFamily:{'display':['Poppins','sans-serif'],'body':['Inter','sans-serif']},colors:{'brand':{50:'#f0fdfa',100:'#ccfbf1',200:'#99f6e4',300:'#5eead4',400:'#2dd4bf',500:'#14b8a6',600:'#0d9488',700:'#0f766e',800:'#115e59',900:'#134e4a'},'coral':{50:'#fff1f2',100:'#ffe4e6',400:'#fb7185',500:'#f43f5e',600:'#e11d48'},'cream':{50:'#fffdfb',100:'#fff8f3',200:'#fdf0e6',300:'#fae5d3'},'navy':{800:'#1e293b',900:'#0f172a'}}}}}
+</script>
+<style>
+*{scroll-behavior:smooth}body{font-family:'Inter',sans-serif}h1,h2,h3,h4,h5,h6,.font-display{font-family:'Poppins',sans-serif}
+.gradient-text{background:linear-gradient(135deg,#0d9488 0%,#14b8a6 50%,#2dd4bf 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero-gradient{background:linear-gradient(135deg,#fff8f3 0%,#f0fdfa 50%,#fff1f2 100%)}
+.glass-card{background:rgba(255,255,255,0.85);backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.5)}
+.booking-step{transition:all .4s cubic-bezier(.4,0,.2,1)}
+.booking-step.active{opacity:1;transform:translateX(0);pointer-events:all;position:relative}
+.booking-step.inactive{opacity:0;transform:translateX(20px);pointer-events:none;position:absolute;width:100%;top:0;left:0}
+.stroller-card{transition:all .3s ease}.stroller-card:hover{transform:translateY(-4px);box-shadow:0 20px 40px -12px rgba(13,148,136,.15)}
+.stroller-card.selected{border-color:#0d9488;background:#f0fdfa;box-shadow:0 0 0 3px rgba(13,148,136,.1)}
+.time-slot{transition:all .2s ease}.time-slot:hover:not(.disabled){background:#f0fdfa;border-color:#14b8a6}
+.time-slot.selected{background:#0d9488;color:white;border-color:#0d9488}
+.time-slot.disabled{opacity:.4;cursor:not-allowed;background:#f1f5f9}
+.mall-card{transition:all .3s ease;cursor:pointer}.mall-card:hover{transform:scale(1.02);box-shadow:0 12px 24px -8px rgba(0,0,0,.1)}
+.mall-card.selected{border-color:#0d9488;background:#f0fdfa;box-shadow:0 0 0 3px rgba(13,148,136,.1)}
+.payment-method.selected{border-color:#0d9488;background:#f0fdfa}
+.progress-bar{transition:width .5s cubic-bezier(.4,0,.2,1)}
+.float-animation{animation:float 6s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-12px)}}
+.slide-up{animation:slideUp .6s ease-out forwards;opacity:0}
+@keyframes slideUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .8s ease-out forwards;opacity:0}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.confetti{position:absolute;width:8px;height:8px;border-radius:50%;animation:confetti-fall 3s ease-out forwards}
+@keyframes confetti-fall{0%{transform:translateY(-20px) rotate(0deg);opacity:1}100%{transform:translateY(300px) rotate(720deg);opacity:0}}
+.booking-drawer{transition:transform .4s cubic-bezier(.4,0,.2,1)}
+.booking-drawer.open{transform:translateY(0)}.booking-drawer.closed{transform:translateY(100%)}
+input:focus,select:focus{outline:none;box-shadow:0 0 0 3px rgba(13,148,136,.15);border-color:#14b8a6}
+.feature-icon{transition:transform .3s ease}.feature-card:hover .feature-icon{transform:scale(1.1) rotate(5deg)}
+.testimonial-card{transition:all .3s ease}.testimonial-card:hover{transform:translateY(-4px)}
+::-webkit-scrollbar{width:6px}::-webkit-scrollbar-track{background:#f1f5f9}::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
+.blob{position:absolute;border-radius:50%;filter:blur(60px);opacity:.4;z-index:0}
+.step-connector{position:relative}.step-connector::after{content:'';position:absolute;top:50%;left:100%;width:100%;height:2px;background:#e2e8f0;z-index:0}
+.step-connector.active::after{background:linear-gradient(90deg,#0d9488,#14b8a6)}
+@media(max-width:640px){.step-connector::after{display:none}}
+.scroll-indicator{animation:bounce 2s infinite}
+@keyframes bounce{0%,20%,50%,80%,100%{transform:translateY(0)}40%{transform:translateY(-8px)}60%{transform:translateY(-4px)}}
+.zone-tab.active{background:#0d9488;color:white;border-color:#0d9488}
+</style>
+<base target="_blank">
+</head>
+<body class="bg-cream-50 text-navy-800 antialiased overflow-x-hidden">
+
+<!-- Navigation -->
+<nav class="fixed top-0 left-0 right-0 z-50 transition-all duration-300 bg-white/80 backdrop-blur-lg border-b border-slate-100/50" id="navbar">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between h-16 lg:h-20">
+<a href="#" class="flex items-center gap-2 group">
+<div class="w-10 h-10 bg-brand-500 rounded-xl flex items-center justify-center shadow-lg shadow-brand-500/20 group-hover:shadow-brand-500/40 transition-all">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="19" r="3"/><circle cx="17" cy="19" r="3"/><path d="M5 16l2-8h10l2 8"/><path d="M7 8V6a2 2 0 012-2h6a2 2 0 012 2v2"/><path d="M3 12h18"/></svg>
+</div>
+<span class="font-display font-bold text-xl tracking-tight text-navy-900">tiny<span class="text-brand-600">wheels</span></span>
+</a>
+<div class="hidden md:flex items-center gap-8">
+<a href="#how-it-works" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">How it Works</a>
+<a href="#strollers" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">Strollers</a>
+<a href="#pricing" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">Pricing</a>
+<a href="#locations" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">Locations</a>
+<a href="#faq" class="text-sm font-medium text-slate-600 hover:text-brand-600 transition-colors">FAQs</a>
+</div>
+<div class="flex items-center gap-3">
+<button onclick="openBooking()" class="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-full shadow-lg shadow-brand-600/20 hover:shadow-brand-600/40 transition-all transform hover:-translate-y-0.5">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+Book a Stroller
+</button>
+<button onclick="openBooking()" class="sm:hidden w-10 h-10 bg-brand-600 hover:bg-brand-700 text-white rounded-full flex items-center justify-center shadow-lg">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+</button>
+<button onclick="toggleMobileMenu()" class="md:hidden w-10 h-10 flex items-center justify-center text-slate-600">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="menuIcon"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+</div>
+</div>
+</div>
+<div id="mobileMenu" class="md:hidden hidden bg-white/95 backdrop-blur-xl border-t border-slate-100">
+<div class="px-4 py-4 space-y-3">
+<a href="#how-it-works" onclick="toggleMobileMenu()" class="block px-4 py-2 text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-brand-50 rounded-lg">How it Works</a>
+<a href="#strollers" onclick="toggleMobileMenu()" class="block px-4 py-2 text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-brand-50 rounded-lg">Strollers</a>
+<a href="#pricing" onclick="toggleMobileMenu()" class="block px-4 py-2 text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-brand-50 rounded-lg">Pricing</a>
+<a href="#locations" onclick="toggleMobileMenu()" class="block px-4 py-2 text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-brand-50 rounded-lg">Locations</a>
+<a href="#faq" onclick="toggleMobileMenu()" class="block px-4 py-2 text-sm font-medium text-slate-600 hover:text-brand-600 hover:bg-brand-50 rounded-lg">FAQs</a>
+</div>
+</div>
+</nav>
+
+<!-- Hero Section -->
+<section class="relative min-h-screen pt-20 lg:pt-0 flex items-center hero-gradient overflow-hidden">
+<div class="blob bg-brand-300 w-96 h-96 -top-20 -left-20"></div>
+<div class="blob bg-coral-400 w-80 h-80 top-40 right-10"></div>
+<div class="blob bg-brand-200 w-64 h-64 bottom-20 left-1/3"></div>
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+<div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+<div class="slide-up" style="animation-delay:0.1s">
+<div class="inline-flex items-center gap-2 px-4 py-2 bg-white/80 backdrop-blur rounded-full shadow-sm border border-brand-100 mb-6">
+<span class="w-2 h-2 bg-brand-500 rounded-full animate-pulse"></span>
+<span class="text-xs font-semibold text-brand-700 tracking-wide uppercase">Now in Delhi & Bangalore</span>
+</div>
+<h1 class="font-display text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-bold text-navy-900 leading-[1.1] mb-6">
+Understand.<br>Book.<br><span class="gradient-text">Experience.</span>
+</h1>
+<p class="text-lg sm:text-xl text-slate-600 mb-8 max-w-lg leading-relaxed">
+Explore how tinywheels works, then book a clean stroller in under a minute. Our staffed rental points, GPS-tracked strollers, and seamless digital + physical tickets make mall visits effortless.
+</p>
+<div class="flex flex-col sm:flex-row gap-4 mb-10">
+<button onclick="openBooking()" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-full shadow-xl shadow-brand-600/25 hover:shadow-brand-600/40 transition-all transform hover:-translate-y-1 text-base">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/></svg>
+Book a Stroller
+</button>
+<a href="#how-it-works" class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white hover:bg-slate-50 text-navy-800 font-semibold rounded-full shadow-lg border border-slate-200 transition-all">
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+Explore the Service
+</a>
+</div>
+<div class="flex flex-wrap items-center gap-6 text-sm text-slate-500">
+<div class="flex items-center gap-2"><div class="w-8 h-8 bg-brand-50 rounded-full flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><span class="font-medium">Hygienically Sanitized</span></div>
+<div class="flex items-center gap-2"><div class="w-8 h-8 bg-brand-50 rounded-full flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span class="font-medium">GPS Enabled</span></div>
+<div class="flex items-center gap-2"><div class="w-8 h-8 bg-brand-50 rounded-full flex items-center justify-center"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><span class="font-medium">Staffed Kiosks</span></div>
+</div>
+</div>
+<div class="relative hidden lg:block">
+<div class="relative float-animation">
+<div class="glass-card rounded-3xl p-6 shadow-2xl border border-white/60">
+<img src="https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=600&h=500&fit=crop" alt="Happy parent with child in stroller at mall" class="rounded-2xl w-full h-80 object-cover mb-4">
+<div class="flex items-center justify-between">
+<div><p class="font-display font-semibold text-navy-900">Select Citywalk, Delhi</p><p class="text-sm text-slate-500">Ground Floor, Near Info Desk • 1-2 Staff On-Site</p></div>
+<div class="w-12 h-12 bg-brand-100 rounded-full flex items-center justify-center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg></div>
+</div>
+</div>
+<div class="absolute -top-4 -right-4 bg-white rounded-2xl p-4 shadow-xl border border-slate-100"><p class="text-xs text-slate-500 font-medium">Starting at</p><p class="font-display font-bold text-2xl text-brand-600">₹20<span class="text-sm text-slate-400 font-normal">/hr</span></p></div>
+<div class="absolute -bottom-4 -left-4 bg-white rounded-2xl px-4 py-3 shadow-xl border border-slate-100 flex items-center gap-3">
+<div class="w-10 h-10 bg-green-50 rounded-full flex items-center justify-center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+<div><p class="text-xs text-slate-500">Available Now</p><p class="font-semibold text-sm text-navy-900">4 Strollers Ready</p></div>
+</div>
+</div>
+</div>
+</div>
+<div class="lg:hidden mt-8 relative">
+<img src="https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?w=800&h=400&fit=crop" alt="Happy parent with child" class="rounded-2xl w-full h-64 object-cover shadow-xl">
+<div class="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur rounded-xl p-3 shadow-lg">
+<div class="flex items-center justify-between">
+<div><p class="font-semibold text-sm text-navy-900">Starting at ₹20/hr</p><p class="text-xs text-slate-500">Staffed kiosks • GPS tracked</p></div>
+<span class="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">Available</span>
+</div>
+</div>
+</div>
+</div>
+<div class="absolute bottom-8 left-1/2 -translate-x-1/2 scroll-indicator hidden lg:flex flex-col items-center gap-2 text-slate-400">
+<span class="text-xs font-medium">Scroll to explore</span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+</div>
+</section>
+
+<!-- How It Works -->
+<section id="how-it-works" class="py-20 lg:py-28 bg-white relative">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<span class="inline-block px-4 py-1.5 bg-brand-50 text-brand-700 text-xs font-bold tracking-wider uppercase rounded-full mb-4">Simple Process</span>
+<h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-navy-900 mb-4">Understand the service.<br>Book in 60 seconds.</h2>
+<p class="text-slate-600 text-lg">Every rental point has 1-2 trained staff to help you. Your booking generates both a digital QR and a physical ticket for a seamless handoff.</p>
+</div>
+<div class="grid sm:grid-cols-2 lg:grid-cols-5 gap-6 lg:gap-4">
+<div class="feature-card relative text-center p-6 rounded-2xl bg-cream-50 hover:bg-brand-50 transition-colors group">
+<div class="step-connector active hidden lg:block"></div>
+<div class="w-14 h-14 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4 feature-icon group-hover:shadow-brand-200/50"><span class="font-display font-bold text-2xl text-brand-600">1</span></div>
+<h3 class="font-display font-semibold text-navy-900 mb-2">Discover</h3>
+<p class="text-sm text-slate-500">Find tinywheels at your nearest mall rental point</p>
+</div>
+<div class="feature-card relative text-center p-6 rounded-2xl bg-cream-50 hover:bg-brand-50 transition-colors group">
+<div class="step-connector active hidden lg:block"></div>
+<div class="w-14 h-14 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4 feature-icon group-hover:shadow-brand-200/50"><span class="font-display font-bold text-2xl text-brand-600">2</span></div>
+<h3 class="font-display font-semibold text-navy-900 mb-2">Book</h3>
+<p class="text-sm text-slate-500">Choose mall, date, time & stroller type online</p>
+</div>
+<div class="feature-card relative text-center p-6 rounded-2xl bg-cream-50 hover:bg-brand-50 transition-colors group">
+<div class="step-connector active hidden lg:block"></div>
+<div class="w-14 h-14 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4 feature-icon group-hover:shadow-brand-200/50"><span class="font-display font-bold text-2xl text-brand-600">3</span></div>
+<h3 class="font-display font-semibold text-navy-900 mb-2">Pick Up</h3>
+<p class="text-sm text-slate-500">Show QR at the staffed kiosk, get stroller + physical ticket</p>
+</div>
+<div class="feature-card relative text-center p-6 rounded-2xl bg-cream-50 hover:bg-brand-50 transition-colors group">
+<div class="step-connector active hidden lg:block"></div>
+<div class="w-14 h-14 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4 feature-icon group-hover:shadow-brand-200/50"><span class="font-display font-bold text-2xl text-brand-600">4</span></div>
+<h3 class="font-display font-semibold text-navy-900 mb-2">Enjoy</h3>
+<p class="text-sm text-slate-500">Shop, dine, browse hands-free with GPS-tracked peace of mind</p>
+</div>
+<div class="feature-card relative text-center p-6 rounded-2xl bg-cream-50 hover:bg-brand-50 transition-colors group">
+<div class="w-14 h-14 bg-white rounded-2xl shadow-lg flex items-center justify-center mx-auto mb-4 feature-icon group-hover:shadow-brand-200/50"><span class="font-display font-bold text-2xl text-brand-600">5</span></div>
+<h3 class="font-display font-semibold text-navy-900 mb-2">Return</h3>
+<p class="text-sm text-slate-500">Scan QR at kiosk, hand over stroller, get digital receipt</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- Stroller Options -->
+<section id="strollers" class="py-20 lg:py-28 bg-cream-50">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<span class="inline-block px-4 py-1.5 bg-white text-brand-700 text-xs font-bold tracking-wider uppercase rounded-full shadow-sm mb-4">Stroller Options</span>
+<h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-navy-900 mb-4">Strollers for every kind of outing</h2>
+<p class="text-slate-600 text-lg">Choose the experience that fits your day. You can rent multiple strollers in a single visit if you have more than one child.</p>
+</div>
+<div class="grid md:grid-cols-3 gap-6 lg:gap-8">
+<div class="stroller-card bg-white rounded-3xl p-6 lg:p-8 border-2 border-slate-100 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-emerald-50 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+<div class="relative">
+<div class="w-full h-48 bg-gradient-to-b from-emerald-50 to-white rounded-2xl flex items-center justify-center mb-6">
+<svg class="w-32 h-32 text-emerald-600" viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 70 Q20 40 40 35 L80 30 Q100 28 100 50 L95 70" stroke-linecap="round"/><circle cx="25" cy="75" r="12"/><circle cx="90" cy="75" r="12"/><path d="M35 35 L30 20 Q28 15 35 15 L70 12 Q78 12 75 20 L70 32" stroke-linecap="round"/><path d="M40 35 L45 50 L85 48" stroke-linecap="round"/><path d="M30 20 L75 17" stroke-linecap="round" stroke-width="2"/></svg>
+</div>
+<div class="flex items-center gap-2 mb-3"><span class="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">BASIC</span></div>
+<h3 class="font-display text-2xl font-bold text-navy-900 mb-1">Basic</h3>
+<p class="text-sm text-slate-500 mb-4">Simple & Affordable</p>
+<div class="flex items-baseline gap-1 mb-6"><span class="font-display text-4xl font-bold text-navy-900">₹20</span><span class="text-slate-400">/hour</span></div>
+<ul class="space-y-3 mb-8">
+<li class="flex items-center gap-3 text-sm text-slate-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-500 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>Standard stroller</li>
+<li class="flex items-center gap-3 text-sm text-slate-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-500 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>Self-service usage</li>
+<li class="flex items-center gap-3 text-sm text-slate-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-500 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>Parent manages independently</li>
+</ul>
+<button onclick="openBooking('basic')" class="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-colors">Choose Basic</button>
+</div>
+</div>
+<div class="stroller-card bg-white rounded-3xl p-6 lg:p-8 border-2 border-brand-200 relative overflow-hidden transform lg:-translate-y-4 shadow-xl shadow-brand-900/5">
+<div class="absolute top-4 right-4 px-3 py-1 bg-brand-500 text-white text-xs font-bold rounded-full">MOST POPULAR</div>
+<div class="absolute top-0 right-0 w-40 h-40 bg-brand-50 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+<div class="relative">
+<div class="w-full h-48 bg-gradient-to-b from-brand-50 to-white rounded-2xl flex items-center justify-center mb-6">
+<svg class="w-32 h-32 text-brand-600" viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="3"><path d="M15 70 Q15 38 38 33 L82 28 Q105 26 105 48 L100 70" stroke-linecap="round"/><circle cx="22" cy="75" r="13"/><circle cx="95" cy="75" r="13"/><path d="M35 33 L28 18 Q26 12 34 12 L72 9 Q82 9 78 18 L72 30" stroke-linecap="round"/><path d="M42 33 L48 52 L92 50" stroke-linecap="round"/><rect x="48" y="38" width="30" height="18" rx="3" stroke-width="2"/><path d="M28 18 L75 14" stroke-linecap="round" stroke-width="2"/><circle cx="60" cy="20" r="4" fill="currentColor" opacity="0.3"/></svg>
+</div>
+<div class="flex items-center gap-2 mb-3"><span class="px-3 py-1 bg-brand-100 text-brand-700 text-xs font-bold rounded-full">PREMIUM</span></div>
+<h3 class="font-display text-2xl font-bold text-navy-900 mb-1">Premium</h3>
+<p class="text-sm text-slate-500 mb-4">More comfort for longer visits</p>
+<div class="flex items-baseline gap-1 mb-6"><span class="font-display text-4xl font-bold text-navy-900">₹50</span><span class="text-slate-400">/hour</span></div>
+<ul class="space-y-3 mb-8">
+<li class="flex items-center gap-3 text-sm text-slate-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-brand-500 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>More space & storage</li>
+<li class="flex items-center gap-3 text-sm text-slate-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-brand-500 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>Child-friendly toys</li>
+<li class="flex items-center gap-3 text-sm text-slate-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-brand-500 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>Enhanced comfort padding</li>
+<li class="flex items-center gap-3 text-sm text-slate-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-brand-500 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>Shopping bag holder</li>
+</ul>
+<button onclick="openBooking('premium')" class="w-full py-3 bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-xl transition-colors shadow-lg shadow-brand-600/20">Choose Premium</button>
+</div>
+</div>
+<div class="stroller-card bg-white rounded-3xl p-6 lg:p-8 border-2 border-amber-100 relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-amber-50 rounded-full -translate-y-1/2 translate-x-1/2"></div>
+<div class="relative">
+<div class="w-full h-48 bg-gradient-to-b from-amber-50 to-white rounded-2xl flex items-center justify-center mb-6">
+<svg class="w-32 h-32 text-amber-600" viewBox="0 0 120 100" fill="none" stroke="currentColor" stroke-width="3"><path d="M10 72 Q10 36 36 31 L86 25 Q112 23 112 48 L106 72" stroke-linecap="round"/><circle cx="18" cy="77" r="14"/><circle cx="102" cy="77" r="14"/><path d="M32 31 L24 14 Q22 8 30 8 L70 5 Q82 5 78 14 L70 28" stroke-linecap="round"/><path d="M40 31 L46 54 L96 52" stroke-linecap="round"/><rect x="48" y="40" width="36" height="20" rx="4" stroke-width="2"/><path d="M24 14 L74 10" stroke-linecap="round" stroke-width="2"/><path d="M50 15 L55 8 L60 15" stroke-linecap="round" stroke-linejoin="round" fill="currentColor" opacity="0.3"/><circle cx="65" cy="22" r="5" fill="currentColor" opacity="0.2"/></svg>
+</div>
+<div class="flex items-center gap-2 mb-3"><span class="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-bold rounded-full">LUXURY</span></div>
+<h3 class="font-display text-2xl font-bold text-navy-900 mb-1">Luxury</h3>
+<p class="text-sm text-slate-500 mb-4">Stroller + Assistance</p>
+<div class="flex items-baseline gap-1 mb-6"><span class="font-display text-4xl font-bold text-navy-900">₹120</span><span class="text-slate-400">/hour</span></div>
+<ul class="space-y-3 mb-8">
+<li class="flex items-center gap-3 text-sm text-slate-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>Premium stroller experience</li>
+<li class="flex items-center gap-3 text-sm text-slate-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>Dedicated staff assistance</li>
+<li class="flex items-center gap-3 text-sm text-slate-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>Help with child during visit</li>
+<li class="flex items-center gap-3 text-sm text-slate-600"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-amber-500 flex-shrink-0"><polyline points="20 6 9 17 4 12"/></svg>Priority support</li>
+</ul>
+<button onclick="openBooking('luxury')" class="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-xl transition-colors">Choose Luxury</button>
+</div>
+</div>
+</div>
+<div class="mt-8 bg-gradient-to-r from-slate-800 to-slate-900 rounded-3xl p-6 lg:p-8 flex flex-col md:flex-row items-center gap-6 text-white">
+<div class="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center flex-shrink-0">
+<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-coral-400"><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.855-1.24 2.344-2.5"/><path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.24-2.344-2.5"/><path d="M8 14v.5"/><path d="M16 14v.5"/><path d="M11.25 16.25h1.5L12 17l-.75-.75Z"/><path d="M4.42 11.247A13.152 13.152 0 0 0 4 14.556C4 18.728 7.582 21 12 21s8-2.272 8-6.444c0-1.061-.162-2.2-.493-3.309m-9.243-6.082A8.801 8.801 0 0 1 12 5c.78 0 1.5.108 2.161.306"/></svg>
+</div>
+<div class="flex-1 text-center md:text-left">
+<h3 class="font-display text-xl font-bold mb-1">Pet Strollers Available</h3>
+<p class="text-slate-300 text-sm">Separate, hygienic strollers for your furry friends. Because pets deserve comfort too. Kept completely separate from child strollers at every rental point.</p>
+</div>
+<div class="text-center md:text-right">
+<p class="text-2xl font-display font-bold text-coral-400">+₹10<span class="text-sm text-slate-400 font-normal">/hr</span></p>
+<p class="text-xs text-slate-400">on any plan above</p>
+</div>
+</div>
+</div>
+</section>
+
+<!-- Locations -->
+<section id="locations" class="py-20 lg:py-28 bg-white">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<span class="inline-block px-4 py-1.5 bg-brand-50 text-brand-700 text-xs font-bold tracking-wider uppercase rounded-full mb-4">Our Locations</span>
+<h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-navy-900 mb-4">Find us at your favourite mall</h2>
+<p class="text-slate-600 text-lg">Currently serving top malls across East, West, South, North, Central Delhi & Bangalore. Every rental point has 1-2 trained staff and GPS-tracked strollers.</p>
+</div>
+
+<!-- City Tabs -->
+<div class="flex justify-center mb-10">
+<div class="inline-flex bg-slate-100 rounded-full p-1">
+<button onclick="switchCity('delhi')" id="tab-delhi" class="px-6 py-2.5 rounded-full text-sm font-semibold transition-all bg-white text-navy-900 shadow-sm">Delhi</button>
+<button onclick="switchCity('bangalore')" id="tab-bangalore" class="px-6 py-2.5 rounded-full text-sm font-semibold transition-all text-slate-500 hover:text-navy-900">Bangalore</button>
+</div>
+</div>
+
+<!-- Delhi -->
+<div id="city-delhi">
+<!-- Delhi Zone Tabs -->
+<div class="flex flex-wrap justify-center gap-2 mb-8">
+<button onclick="switchDelhiZone('south')" id="zone-south" class="zone-tab active px-4 py-2 rounded-full text-xs font-semibold border-2 border-brand-500 bg-brand-50 text-brand-700 transition-all">South Delhi</button>
+<button onclick="switchDelhiZone('west')" id="zone-west" class="zone-tab px-4 py-2 rounded-full text-xs font-semibold border-2 border-slate-200 text-slate-600 hover:border-brand-300 transition-all">West Delhi</button>
+<button onclick="switchDelhiZone('east')" id="zone-east" class="zone-tab px-4 py-2 rounded-full text-xs font-semibold border-2 border-slate-200 text-slate-600 hover:border-brand-300 transition-all">East Delhi</button>
+<button onclick="switchDelhiZone('north')" id="zone-north" class="zone-tab px-4 py-2 rounded-full text-xs font-semibold border-2 border-slate-200 text-slate-600 hover:border-brand-300 transition-all">North Delhi</button>
+<button onclick="switchDelhiZone('central')" id="zone-central" class="zone-tab px-4 py-2 rounded-full text-xs font-semibold border-2 border-slate-200 text-slate-600 hover:border-brand-300 transition-all">Central Delhi</button>
+</div>
+
+<!-- South Delhi -->
+<div id="zone-delhi-south" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Select Citywalk, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Select Citywalk</h3><p class="text-sm text-slate-500 mb-2">Saket, South Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">4 available</span><span class="text-xs text-slate-400">Ground Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('DLF Promenade, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">DLF Promenade</h3><p class="text-sm text-slate-500 mb-2">Vasant Kunj, South Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">6 available</span><span class="text-xs text-slate-400">Near Info Desk</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Ambience Mall, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Ambience Mall</h3><p class="text-sm text-slate-500 mb-2">Vasant Kunj, South Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">2 available</span><span class="text-xs text-slate-400">First Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('DLF Avenue, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">DLF Avenue</h3><p class="text-sm text-slate-500 mb-2">Saket, South Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">3 available</span><span class="text-xs text-slate-400">Near Entrance</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Ansal Plaza, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Ansal Plaza</h3><p class="text-sm text-slate-500 mb-2">Khel Gaon, South Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">3 available</span><span class="text-xs text-slate-400">Ground Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+</div>
+
+<!-- West Delhi -->
+<div id="zone-delhi-west" class="hidden grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Pacific Mall, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Pacific Mall</h3><p class="text-sm text-slate-500 mb-2">Tagore Garden, West Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">5 available</span><span class="text-xs text-slate-400">Ground Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('TDI Mall, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">TDI Mall</h3><p class="text-sm text-slate-500 mb-2">Rajouri Garden, West Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">4 available</span><span class="text-xs text-slate-400">Near Entrance</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Moments Mall, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Moments Mall</h3><p class="text-sm text-slate-500 mb-2">Kirti Nagar, West Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">3 available</span><span class="text-xs text-slate-400">Ground Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Vegas Mall, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Vegas Mall</h3><p class="text-sm text-slate-500 mb-2">Dwarka, West Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">5 available</span><span class="text-xs text-slate-400">First Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('City Square, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">City Square</h3><p class="text-sm text-slate-500 mb-2">Rajouri Garden, West Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">2 available</span><span class="text-xs text-slate-400">Ground Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+</div>
+
+<!-- East Delhi -->
+<div id="zone-delhi-east" class="hidden grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('V3S Mall, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">V3S Mall</h3><p class="text-sm text-slate-500 mb-2">Preet Vihar, East Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">4 available</span><span class="text-xs text-slate-400">Ground Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Cross River Mall, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Cross River Mall</h3><p class="text-sm text-slate-500 mb-2">Shahdara, East Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">3 available</span><span class="text-xs text-slate-400">Near Entrance</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Pacific Mall Jasola, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Pacific Mall Jasola</h3><p class="text-sm text-slate-500 mb-2">Jasola, East Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">4 available</span><span class="text-xs text-slate-400">Ground Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('City Mall, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">City Mall</h3><p class="text-sm text-slate-500 mb-2">Karkardooma, East Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">2 available</span><span class="text-xs text-slate-400">First Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+</div>
+
+<!-- North Delhi -->
+<div id="zone-delhi-north" class="hidden grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('DLF City Centre, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">DLF City Centre</h3><p class="text-sm text-slate-500 mb-2">Shalimar Bagh, North Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">4 available</span><span class="text-xs text-slate-400">Ground Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('TDI Mall Shakurpur, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">TDI Mall</h3><p class="text-sm text-slate-500 mb-2">Shakurpur, North Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">3 available</span><span class="text-xs text-slate-400">Near Info Desk</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Max Mall, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Max Mall</h3><p class="text-sm text-slate-500 mb-2">Pitampura, North Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">3 available</span><span class="text-xs text-slate-400">Ground Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Unity One, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Unity One</h3><p class="text-sm text-slate-500 mb-2">Rohini, North Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">5 available</span><span class="text-xs text-slate-400">First Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+</div>
+
+<!-- Central Delhi -->
+<div id="zone-delhi-central" class="hidden grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('The Chanakya, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">The Chanakya</h3><p class="text-sm text-slate-500 mb-2">Chanakyapuri, Central Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">2 available</span><span class="text-xs text-slate-400">Ground Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Connaught Place Plaza, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">CP Plaza</h3><p class="text-sm text-slate-500 mb-2">Connaught Place, Central Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">2 available</span><span class="text-xs text-slate-400">Near Entrance</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Statesman House, Delhi')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Statesman House</h3><p class="text-sm text-slate-500 mb-2">Barakhamba Road, Central Delhi</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">1 available</span><span class="text-xs text-slate-400">Ground Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+</div>
+</div>
+
+<!-- Bangalore -->
+<div id="city-bangalore" class="hidden">
+<div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Phoenix Marketcity, Bangalore')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Phoenix Marketcity</h3><p class="text-sm text-slate-500 mb-2">Whitefield, Bangalore</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">7 available</span><span class="text-xs text-slate-400">Ground Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Orion Mall, Bangalore')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Orion Mall</h3><p class="text-sm text-slate-500 mb-2">Rajajinagar, Bangalore</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">5 available</span><span class="text-xs text-slate-400">First Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('VR Bengaluru, Bangalore')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">VR Bengaluru</h3><p class="text-sm text-slate-500 mb-2">Whitefield, Bangalore</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">3 available</span><span class="text-xs text-slate-400">Near Food Court</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Mantri Square, Bangalore')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Mantri Square</h3><p class="text-sm text-slate-500 mb-2">Malleswaram, Bangalore</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">4 available</span><span class="text-xs text-slate-400">Ground Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Forum Mall, Bangalore')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Forum Mall</h3><p class="text-sm text-slate-500 mb-2">Koramangala, Bangalore</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">5 available</span><span class="text-xs text-slate-400">First Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Garuda Mall, Bangalore')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Garuda Mall</h3><p class="text-sm text-slate-500 mb-2">Magrath Road, Bangalore</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">4 available</span><span class="text-xs text-slate-400">Ground Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Gopalan Mall, Bangalore')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Gopalan Mall</h3><p class="text-sm text-slate-500 mb-2">Bannerghatta Road, Bangalore</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">3 available</span><span class="text-xs text-slate-400">Near Entrance</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Esteem Mall, Bangalore')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Esteem Mall</h3><p class="text-sm text-slate-500 mb-2">Hebbal, Bangalore</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-amber-100 text-amber-700 text-xs font-medium rounded">2 available</span><span class="text-xs text-slate-400">Ground Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+<div class="mall-card bg-cream-50 rounded-2xl p-5 border border-slate-100" onclick="selectMall('Royal Meenakshi Mall, Bangalore')"><div class="flex items-start gap-4"><div class="w-14 h-14 bg-brand-100 rounded-xl flex items-center justify-center flex-shrink-0"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 12h2a2 2 0 0 1 2 2v6a2 2 0 0 1-2 2h-2"/><path d="M10 9h4"/><path d="M10 13h4"/><path d="M10 17h4"/></svg></div><div class="flex-1 min-w-0"><h3 class="font-display font-semibold text-navy-900 mb-1">Royal Meenakshi Mall</h3><p class="text-sm text-slate-500 mb-2">Bannerghatta Road, Bangalore</p><div class="flex items-center gap-2"><span class="px-2 py-0.5 bg-green-100 text-green-700 text-xs font-medium rounded">4 available</span><span class="text-xs text-slate-400">First Floor</span></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-300"><polyline points="9 18 15 12 9 6"/></svg></div></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- Why Choose Us -->
+<section class="py-20 lg:py-28 bg-cream-50">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="grid lg:grid-cols-2 gap-12 lg:gap-20 items-center">
+<div>
+<span class="inline-block px-4 py-1.5 bg-white text-brand-700 text-xs font-bold tracking-wider uppercase rounded-full shadow-sm mb-4">Why tinywheels?</span>
+<h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-navy-900 mb-6">Built for parents,<br>designed for trust.</h2>
+<p class="text-slate-600 text-lg mb-10">Every rental point is staffed with 1-2 trained team members who help with pickup, adjustments, and returns. We know the concerns that come with shared strollers, so hygiene, safety, and transparency are at the core of everything we do.</p>
+<div class="space-y-6">
+<div class="flex gap-4">
+<div class="w-12 h-12 bg-white rounded-xl shadow-md flex items-center justify-center flex-shrink-0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z"/></svg></div>
+<div><h3 class="font-display font-semibold text-navy-900 mb-1">Hygienically Sanitized</h3><p class="text-sm text-slate-500">Every stroller is deep-cleaned and sanitized after each use. Child and pet strollers are kept completely separate at all times.</p></div>
+</div>
+<div class="flex gap-4">
+<div class="w-12 h-12 bg-white rounded-xl shadow-md flex items-center justify-center flex-shrink-0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+<div><h3 class="font-display font-semibold text-navy-900 mb-1">GPS Enabled</h3><p class="text-sm text-slate-500">Always know where to find the rental kiosk. Real-time GPS location tracking inside the mall for peace of mind.</p></div>
+</div>
+<div class="flex gap-4">
+<div class="w-12 h-12 bg-white rounded-xl shadow-md flex items-center justify-center flex-shrink-0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+<div><h3 class="font-display font-semibold text-navy-900 mb-1">Regularly Maintained</h3><p class="text-sm text-slate-500">Daily safety checks and weekly deep maintenance. Only the best for your little one.</p></div>
+</div>
+<div class="flex gap-4">
+<div class="w-12 h-12 bg-white rounded-xl shadow-md flex items-center justify-center flex-shrink-0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+<div><h3 class="font-display font-semibold text-navy-900 mb-1">Staffed Kiosks</h3><p class="text-sm text-slate-500">1-2 trained staff at every rental point to help with setup, stroller adjustments, and smooth handovers. You are never left figuring it out alone.</p></div>
+</div>
+<div class="flex gap-4">
+<div class="w-12 h-12 bg-white rounded-xl shadow-md flex items-center justify-center flex-shrink-0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M9 12h.01"/><path d="M15 12h.01"/><path d="M10 16c.5.3 1.2.5 2 .5s1.5-.2 2-.5"/><path d="M19 6.3a9 9 0 0 1 1.8 3.9 2 2 0 0 1 0 3.6 9 9 0 0 1-17.6 0 2 2 0 0 1 0-3.6A9 9 0 0 1 12 3c2 0 3.5 1.1 3.5 2.5s-.9 2.5-2 2.5c-.8 0-1.5-.4-1.5-1"/></svg></div>
+<div><h3 class="font-display font-semibold text-navy-900 mb-1">Clean & Safe Experience</h3><p class="text-sm text-slate-500">Child-only strollers. Pet strollers are completely separate with dedicated cleaning protocols. Because hygiene matters.</p></div>
+</div>
+<div class="flex gap-4">
+<div class="w-12 h-12 bg-white rounded-xl shadow-md flex items-center justify-center flex-shrink-0"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+<div><h3 class="font-display font-semibold text-navy-900 mb-1">Digital + Physical Tickets</h3><p class="text-sm text-slate-500">Your booking generates both a QR code and a physical ticket, so you have backup proof at the staffed kiosk even if your phone battery runs low.</p></div>
+</div>
+</div>
+</div>
+<div class="relative">
+<div class="absolute inset-0 bg-gradient-to-br from-brand-100 to-coral-100 rounded-3xl transform rotate-3"></div>
+<img src="https://images.unsplash.com/photo-1566004100631-35d015d6a491?w=600&h=700&fit=crop" alt="Happy child in clean stroller" class="relative rounded-3xl shadow-2xl w-full h-[500px] lg:h-[600px] object-cover">
+<div class="absolute -bottom-6 -left-6 bg-white rounded-2xl p-5 shadow-xl border border-slate-100">
+<div class="flex items-center gap-3">
+<div class="w-12 h-12 bg-brand-50 rounded-full flex items-center justify-center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div>
+<div><p class="font-display font-bold text-2xl text-navy-900">4.8</p><p class="text-xs text-slate-500">Average Rating</p></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- Pricing -->
+<section id="pricing" class="py-20 lg:py-28 bg-white">
+<div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<span class="inline-block px-4 py-1.5 bg-brand-50 text-brand-700 text-xs font-bold tracking-wider uppercase rounded-full mb-4">Pricing</span>
+<h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-navy-900 mb-4">Simple, transparent pricing</h2>
+<p class="text-slate-600 text-lg">Pay only for what you use. Base rental is 1 hour. We offer a 7-10 minute grace period, after which the next hourly charge applies. Maximum rental duration is 7 hours.</p>
+</div>
+<div class="bg-cream-50 rounded-3xl p-6 lg:p-10 border border-slate-100">
+<div class="grid sm:grid-cols-3 gap-6 mb-8">
+<div class="bg-white rounded-2xl p-6 text-center border border-slate-100">
+<div class="w-12 h-12 bg-emerald-100 rounded-xl flex items-center justify-center mx-auto mb-3"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-emerald-600"><circle cx="7" cy="19" r="3"/><circle cx="17" cy="19" r="3"/><path d="M5 16l2-8h10l2 8"/><path d="M7 8V6a2 2 0 012-2h6a2 2 0 012 2v2"/><path d="M3 12h18"/></svg></div>
+<h3 class="font-display font-semibold text-navy-900 mb-1">Basic</h3>
+<p class="text-3xl font-display font-bold text-navy-900">₹20<span class="text-base font-normal text-slate-400">/hr</span></p>
+</div>
+<div class="bg-white rounded-2xl p-6 text-center border-2 border-brand-200 shadow-lg shadow-brand-900/5 relative">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-brand-500 text-white text-xs font-bold rounded-full">POPULAR</div>
+<div class="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center mx-auto mb-3"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-600"><circle cx="7" cy="19" r="3"/><circle cx="17" cy="19" r="3"/><path d="M5 16l2-8h10l2 8"/><path d="M7 8V6a2 2 0 012-2h6a2 2 0 012 2v2"/><path d="M3 12h18"/></svg></div>
+<h3 class="font-display font-semibold text-navy-900 mb-1">Premium</h3>
+<p class="text-3xl font-display font-bold text-navy-900">₹50<span class="text-base font-normal text-slate-400">/hr</span></p>
+</div>
+<div class="bg-white rounded-2xl p-6 text-center border border-slate-100">
+<div class="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center mx-auto mb-3"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-amber-600"><path d="m12 2 3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg></div>
+<h3 class="font-display font-semibold text-navy-900 mb-1">Luxury</h3>
+<p class="text-3xl font-display font-bold text-navy-900">₹120<span class="text-base font-normal text-slate-400">/hr</span></p>
+</div>
+</div>
+<div class="bg-white rounded-2xl p-6 border border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4 mb-6">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-600"><path d="M10 5.172C10 3.782 8.423 2.679 6.5 3c-2.823.47-4.113 6.006-4 7 .08.703 1.725 1.722 3.656 1 1.261-.472 1.855-1.24 2.344-2.5"/><path d="M14.267 5.172c0-1.39 1.577-2.493 3.5-2.172 2.823.47 4.113 6.006 4 7-.08.703-1.725 1.722-3.656 1-1.261-.472-1.855-1.24-2.344-2.5"/><path d="M8 14v.5"/><path d="M16 14v.5"/><path d="M11.25 16.25h1.5L12 17l-.75-.75Z"/><path d="M4.42 11.247A13.152 13.152 0 0 0 4 14.556C4 18.728 7.582 21 12 21s8-2.272 8-6.444c0-1.061-.162-2.2-.493-3.309m-9.243-6.082A8.801 8.801 0 0 1 12 5c.78 0 1.5.108 2.161.306"/></svg></div>
+<div><h4 class="font-display font-semibold text-navy-900">Pet Strollers</h4><p class="text-sm text-slate-500">Completely separate from child strollers</p></div>
+</div>
+<div class="text-center sm:text-right"><p class="text-2xl font-display font-bold text-navy-900">+₹10<span class="text-sm text-slate-400 font-normal">/hr</span></p><p class="text-xs text-slate-500">Added to any plan above</p></div>
+</div>
+<div class="flex flex-wrap items-center justify-center gap-6 text-sm text-slate-500">
+<div class="flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>Base rental: 1 hour</span></div>
+<div class="flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>7-10 min grace period</span></div>
+<div class="flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>After grace: next hour charge</span></div>
+<div class="flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>Maximum 7 hours rental</span></div>
+<div class="flex items-center gap-2"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-brand-500"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg><span>₹100 refundable security deposit</span></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- Testimonials -->
+<section class="py-20 lg:py-28 bg-cream-50">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center max-w-2xl mx-auto mb-16">
+<span class="inline-block px-4 py-1.5 bg-white text-brand-700 text-xs font-bold tracking-wider uppercase rounded-full shadow-sm mb-4">Testimonials</span>
+<h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-navy-900 mb-4">Loved by 10,000+ families</h2>
+</div>
+<div class="grid md:grid-cols-3 gap-6">
+<div class="testimonial-card bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+<div class="flex items-center gap-1 mb-4">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+</div>
+<p class="text-slate-600 mb-6">"Finally, I can shop without carrying my toddler! The stroller was spotless and the staff at the rental point was incredibly helpful. Will use every time we visit Select Citywalk."</p>
+<div class="flex items-center gap-3"><div class="w-10 h-10 bg-brand-100 rounded-full flex items-center justify-center"><span class="font-display font-bold text-brand-700 text-sm">PR</span></div><div><p class="font-semibold text-sm text-navy-900">Priya R.</p><p class="text-xs text-slate-500">Mother of 2, Delhi</p></div></div>
+</div>
+<div class="testimonial-card bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+<div class="flex items-center gap-1 mb-4">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+</div>
+<p class="text-slate-600 mb-6">"The Premium stroller had so much storage space. I could actually shop without juggling bags and a tired 3-year-old. The 1-hour base rental was perfect for a quick visit. Game changer!"</p>
+<div class="flex items-center gap-3"><div class="w-10 h-10 bg-coral-100 rounded-full flex items-center justify-center"><span class="font-display font-bold text-coral-600 text-sm">AK</span></div><div><p class="font-semibold text-sm text-navy-900">Arjun K.</p><p class="text-xs text-slate-500">Father of 1, Bangalore</p></div></div>
+</div>
+<div class="testimonial-card bg-white rounded-2xl p-6 border border-slate-100 shadow-sm">
+<div class="flex items-center gap-1 mb-4">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+<svg width="16" height="16" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+</div>
+<p class="text-slate-600 mb-6">"I was skeptical about hygiene, but the stroller smelled fresh and looked brand new. The booking process took literally 30 seconds, and the staff gave me a physical ticket as backup. Highly recommend!"</p>
+<div class="flex items-center gap-3"><div class="w-10 h-10 bg-amber-100 rounded-full flex items-center justify-center"><span class="font-display font-bold text-amber-700 text-sm">SM</span></div><div><p class="font-semibold text-sm text-navy-900">Sneha M.</p><p class="text-xs text-slate-500">Mother of 2, Delhi</p></div></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- FAQ -->
+<section id="faq" class="py-20 lg:py-28 bg-white">
+<div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="text-center mb-16">
+<span class="inline-block px-4 py-1.5 bg-brand-50 text-brand-700 text-xs font-bold tracking-wider uppercase rounded-full mb-4">FAQ</span>
+<h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-navy-900 mb-4">Questions? Answered.</h2>
+</div>
+<div class="space-y-4" id="faqContainer">
+<div class="faq-item bg-cream-50 rounded-2xl border border-slate-100 overflow-hidden">
+<button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left">
+<span class="font-display font-semibold text-navy-900">How do I book a stroller?</span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform faq-icon"><polyline points="6 9 12 15 18 9"/></svg>
+</button>
+<div class="faq-answer hidden px-5 pb-5"><p class="text-slate-600 text-sm">Simply click "Book a Stroller," select your mall, pick a date and time slot, choose your stroller type, enter your phone number, and pay. You will receive a booking confirmation with a QR code and a physical ticket at the staffed rental point.</p></div>
+</div>
+<div class="faq-item bg-cream-50 rounded-2xl border border-slate-100 overflow-hidden">
+<button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left">
+<span class="font-display font-semibold text-navy-900">How clean are the strollers?</span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform faq-icon"><polyline points="6 9 12 15 18 9"/></svg>
+</button>
+<div class="faq-answer hidden px-5 pb-5"><p class="text-slate-600 text-sm">Every stroller is deep-cleaned and sanitized after each return. We use child-safe disinfectants and conduct daily hygiene audits. Child and pet strollers are kept completely separate at all rental points.</p></div>
+</div>
+<div class="faq-item bg-cream-50 rounded-2xl border border-slate-100 overflow-hidden">
+<button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left">
+<span class="font-display font-semibold text-navy-900">What is the base rental duration and maximum limit?</span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform faq-icon"><polyline points="6 9 12 15 18 9"/></svg>
+</button>
+<div class="faq-answer hidden px-5 pb-5"><p class="text-slate-600 text-sm">The base rental is 1 hour. You can extend your rental up to a maximum of 7 hours total, subject to availability. If you need it longer, you can extend through the booking status page or speak to the staff at the rental point.</p></div>
+</div>
+<div class="faq-item bg-cream-50 rounded-2xl border border-slate-100 overflow-hidden">
+<button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left">
+<span class="font-display font-semibold text-navy-900">What is the grace period for late returns?</span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform faq-icon"><polyline points="6 9 12 15 18 9"/></svg>
+</button>
+<div class="faq-answer hidden px-5 pb-5"><p class="text-slate-600 text-sm">We offer a 7-10 minute grace period after your rental hour ends. If you return within this window, no extra charges apply. After the grace period, the next hourly charge applies automatically. For example, if you are 15 minutes late on a Basic stroller, an additional ₹20 will be charged.</p></div>
+</div>
+<div class="faq-item bg-cream-50 rounded-2xl border border-slate-100 overflow-hidden">
+<button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left">
+<span class="font-display font-semibold text-navy-900">Can I rent multiple strollers at once?</span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform faq-icon"><polyline points="6 9 12 15 18 9"/></svg>
+</button>
+<div class="faq-answer hidden px-5 pb-5"><p class="text-slate-600 text-sm">Yes, you can rent multiple strollers in a single booking or through separate transactions. Each stroller requires its own ₹100 refundable security deposit. This is perfect if you have more than one child or are visiting with friends.</p></div>
+</div>
+<div class="faq-item bg-cream-50 rounded-2xl border border-slate-100 overflow-hidden">
+<button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left">
+<span class="font-display font-semibold text-navy-900">How do the staffed rental points work?</span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform faq-icon"><polyline points="6 9 12 15 18 9"/></svg>
+</button>
+<div class="faq-answer hidden px-5 pb-5"><p class="text-slate-600 text-sm">Every tinywheels rental point inside a mall has 1-2 trained staff members. They help verify your booking via QR scan, hand over the stroller, provide a physical ticket as backup, assist with adjustments, and process returns. They also monitor stroller availability and coordinate cleaning.</p></div>
+</div>
+<div class="faq-item bg-cream-50 rounded-2xl border border-slate-100 overflow-hidden">
+<button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left">
+<span class="font-display font-semibold text-navy-900">What happens if my phone dies or I lose the QR code?</span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform faq-icon"><polyline points="6 9 12 15 18 9"/></svg>
+</button>
+<div class="faq-answer hidden px-5 pb-5"><p class="text-slate-600 text-sm">No worries. Every booking generates both a digital QR code and a physical ticket that our staff provides at the rental point. You can also give your registered phone number to the staff, and they can look up your booking in the system instantly.</p></div>
+</div>
+<div class="faq-item bg-cream-50 rounded-2xl border border-slate-100 overflow-hidden">
+<button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left">
+<span class="font-display font-semibold text-navy-900">Can I cancel my booking?</span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform faq-icon"><polyline points="6 9 12 15 18 9"/></svg>
+</button>
+<div class="faq-answer hidden px-5 pb-5"><p class="text-slate-600 text-sm">Yes, you can cancel anytime before your pickup time. Full refund if cancelled 2+ hours before. 50% refund if cancelled within 2 hours. No refund for no-shows. The security deposit is always refunded within 24 hours of cancellation or return.</p></div>
+</div>
+<div class="faq-item bg-cream-50 rounded-2xl border border-slate-100 overflow-hidden">
+<button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left">
+<span class="font-display font-semibold text-navy-900">Do you offer pet strollers?</span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform faq-icon"><polyline points="6 9 12 15 18 9"/></svg>
+</button>
+<div class="faq-answer hidden px-5 pb-5"><p class="text-slate-600 text-sm">Yes! Pet strollers are available at ₹10/hour extra on any plan. They are completely separate from child strollers to maintain hygiene standards, and are available at all our rental points across Delhi and Bangalore.</p></div>
+</div>
+<div class="faq-item bg-cream-50 rounded-2xl border border-slate-100 overflow-hidden">
+<button onclick="toggleFaq(this)" class="w-full flex items-center justify-between p-5 text-left">
+<span class="font-display font-semibold text-navy-900">How does GPS tracking work?</span>
+<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-slate-400 transition-transform faq-icon"><polyline points="6 9 12 15 18 9"/></svg>
+</button>
+<div class="faq-answer hidden px-5 pb-5"><p class="text-slate-600 text-sm">All our strollers have GPS tracking enabled, so you can always locate the nearest rental point inside the mall. This also helps our operations team monitor stroller location, ensure none are misplaced, and maintain accurate availability data in real time.</p></div>
+</div>
+</div>
+</div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-20 lg:py-28 bg-brand-600 relative overflow-hidden">
+<div class="absolute inset-0 opacity-10">
+<svg class="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M0 50 Q25 30 50 50 T100 50 V100 H0 Z" fill="white"/><path d="M0 70 Q25 50 50 70 T100 70 V100 H0 Z" fill="white" opacity="0.5"/></svg>
+</div>
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
+<h2 class="font-display text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-6">Ready for a stress-free mall visit?</h2>
+<p class="text-brand-100 text-lg mb-10 max-w-2xl mx-auto">Explore the service, book your stroller in 60 seconds, and experience hands-free shopping, dining, and browsing with your little one. Staffed kiosks. GPS tracked. Hassle-free returns.</p>
+<button onclick="openBooking()" class="inline-flex items-center justify-center gap-2 px-10 py-5 bg-white hover:bg-brand-50 text-brand-700 font-bold rounded-full shadow-xl transition-all transform hover:-translate-y-1 text-lg">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+Book a Stroller Now
+</button>
+<p class="text-brand-200 text-sm mt-6">No account required. Just your phone number. 1-hour base rental. 7-10 min grace period.</p>
+</div>
+</section>
+
+<!-- Footer -->
+<footer class="bg-navy-900 text-white py-16">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+<div class="lg:col-span-1">
+<a href="#" class="flex items-center gap-2 mb-4">
+<div class="w-10 h-10 bg-brand-500 rounded-xl flex items-center justify-center">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="7" cy="19" r="3"/><circle cx="17" cy="19" r="3"/><path d="M5 16l2-8h10l2 8"/><path d="M7 8V6a2 2 0 012-2h6a2 2 0 012 2v2"/><path d="M3 12h18"/></svg>
+</div>
+<span class="font-display font-bold text-xl">tiny<span class="text-brand-400">wheels</span></span>
+</a>
+<p class="text-slate-400 text-sm leading-relaxed mb-4">Making mall visits easier for parents with young children. Clean, affordable stroller rentals across Delhi & Bangalore. Understand the service, explore the experience, and book in under a minute.</p>
+<p class="text-slate-500 text-xs">Every rental point has 1-2 trained staff, GPS-tracked strollers, and both digital + physical tickets for a seamless experience.</p>
+</div>
+<div>
+<h4 class="font-display font-semibold mb-4">Quick Links</h4>
+<ul class="space-y-2">
+<li><a href="#how-it-works" class="text-slate-400 hover:text-white text-sm transition-colors">How it Works</a></li>
+<li><a href="#strollers" class="text-slate-400 hover:text-white text-sm transition-colors">Stroller Options</a></li>
+<li><a href="#pricing" class="text-slate-400 hover:text-white text-sm transition-colors">Pricing</a></li>
+<li><a href="#locations" class="text-slate-400 hover:text-white text-sm transition-colors">Locations</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-display font-semibold mb-4">Support</h4>
+<ul class="space-y-2">
+<li><a href="#faq" class="text-slate-400 hover:text-white text-sm transition-colors">FAQs</a></li>
+<li><a href="#" class="text-slate-400 hover:text-white text-sm transition-colors">Cancellation Policy</a></li>
+<li><a href="#" class="text-slate-400 hover:text-white text-sm transition-colors">Refund Policy</a></li>
+<li><a href="#" class="text-slate-400 hover:text-white text-sm transition-colors">Contact Us</a></li>
+</ul>
+</div>
+<div>
+<h4 class="font-display font-semibold mb-4">Contact</h4>
+<ul class="space-y-2">
+<li class="flex items-center gap-2 text-slate-400 text-sm"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>+91 98765 43210</li>
+<li class="flex items-center gap-2 text-slate-400 text-sm"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>hello@tinywheels.in</li>
+</ul>
+</div>
+</div>
+<div class="border-t border-slate-800 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+<p class="text-slate-500 text-sm">© 2026 tinywheels. All rights reserved.</p>
+<div class="flex items-center gap-4">
+<a href="#" class="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center hover:bg-brand-600 transition-colors"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg></a>
+<a href="#" class="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center hover:bg-brand-600 transition-colors"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg></a>
+<a href="#" class="w-8 h-8 bg-slate-800 rounded-full flex items-center justify-center hover:bg-brand-600 transition-colors"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg></a>
+</div>
+</div>
+</div>
+</footer>
